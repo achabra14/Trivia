@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <header>
-      <h1>Trivia Game</h1>
+      <h1>Trivia</h1>
     </header>
     <main>
       <TriviaGame />
