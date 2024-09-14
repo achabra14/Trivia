@@ -57,14 +57,6 @@
     cursor: not-allowed;
   }
   
-  .correct {
-    background-color: green;
-  }
-  
-  .incorrect {
-    background-color: red;
-  }
-  
   ul {
     list-style-type: none;
     padding: 0;

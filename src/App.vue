@@ -21,11 +21,11 @@ export default {
 </script>
 
 <style>
+
 #app {
   text-align: center;
   font-family: Avenir, Helvetica, Arial, sans-serif;
   color: #2c3e50;
-  margin-top: 60px;
 }
 
 header {
@@ -40,7 +40,8 @@ main {
 button {
   margin: 10px;
   padding: 10px 20px;
-  background-color: #42b983;
+  /* pick a light blue for background-color */
+  background-color: #3498db;
   color: white;
   border: none;
   cursor: pointer;
@@ -51,7 +52,7 @@ button:focus {
 }
 
 button:hover {
-  background-color: #35a076;
+  background-color: #2980b9;
 }
 </style>
 

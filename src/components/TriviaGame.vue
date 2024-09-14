@@ -122,5 +122,22 @@
   button {
     margin-top: 10px;
   }
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+    .score-display {
+        font-size: 16px;
+        padding: 8px;
+        bottom: 5px;
+        right: 5px;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 5px;
+    }
+}
+
+
   </style>
   
