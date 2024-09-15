@@ -15,6 +15,8 @@
   </template>
   
   <script>
+  import { ref, watch } from 'vue';
+
   export default {
     props: {
       question: String,
@@ -22,26 +24,42 @@
       selectedAnswer: String,
       correctAnswer: String
     },
-    methods: {
-      selectAnswer(answer) {
-        if (!this.selectedAnswer) {
-          this.$emit('answer-selected', answer);
-        }
-      },
-      buttonStyle(answer) {
-        if (!this.selectedAnswer) return {};
-  
-        if (answer === this.correctAnswer) {
+    setup(props, { emit }) {
+      const selectedAnswer = ref(null);
+
+      const selectAnswer = (answer) => {
+        selectedAnswer.value = answer;
+        emit('answer-selected', answer);
+      };
+
+      const buttonStyle = (answer) => {
+        if (!selectedAnswer.value) return {};
+
+        if (answer === props.correctAnswer) {
           return { backgroundColor: 'green', color: 'white' };
-        } else if (answer === this.selectedAnswer) {
+        } else if (answer === selectedAnswer.value) {
           return { backgroundColor: 'red', color: 'white' };
         } else {
           return {};
         }
-      }
+      };
+
+      
+
+      // Reset selected answer if a new question is loaded
+      watch(() => props.question, () => {
+        selectedAnswer.value = null;
+      });
+
+      return {
+        selectedAnswer,
+        selectAnswer,
+        buttonStyle
+      };
     }
-  }
+  };
   </script>
+
   
   <style scoped>
   /* Adjust button styles */
@@ -51,6 +69,7 @@
     border: none;
     cursor: pointer;
     border-radius: 5px;
+    width: 150px;
   }
   
   button:disabled {

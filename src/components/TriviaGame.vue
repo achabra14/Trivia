@@ -1,6 +1,15 @@
 <template>
-    <div class="trivia-game">
-      <h3 v-if="currentQuestion">{{ decodeHTMLEntities(currentQuestion.category) }}</h3>
+  <div class="trivia-game">
+    <div v-if="!username" class="username-screen">
+      <h2>Welcome to the Trivia Game!</h2>
+      <p>Please enter your username to start:</p>
+      <input v-model="inputUsername" placeholder="Enter your username" />
+      <button @click="startGame">Start</button>
+    </div>
+
+     <!-- Trivia game begins once username is entered -->
+     <div v-if="username && currentQuestion">
+      <h3>{{ decodeHTMLEntities(currentQuestion.category) }}</h3>
       <Question 
         v-if="currentQuestion" 
         :question="decodeHTMLEntities(currentQuestion.question)" 
@@ -9,109 +18,155 @@
         :correct-answer="decodeHTMLEntities(currentQuestion.correct_answer)"
         @answer-selected="handleAnswer"
       />
-      
+
+      <!-- Feedback and Next Question Button -->
       <div v-if="selectedAnswer" class="feedback">
         <p>{{ isCorrect ? 'Correct! 🎉' : 'Incorrect!' }}</p>
         <button @click="nextQuestion">Next Question</button>
       </div>
-  
-      <p v-if="!currentQuestion && !loading">Game over! You scored {{ score }}/{{ questions.length }}</p>
-      <button v-if="!currentQuestion && !loading" @click="resetGame">Restart</button>
-      <p v-if="loading">Loading questions...</p>
-  
-      <!-- Score displayed in the bottom right corner -->
-      <div class="score-display">Score: {{ score }}</div>
+
+      <!-- Username and score displayed in the bottom right corner -->
+      <div class="score-display">{{ username }} : {{ score }}</div>
     </div>
+
+    <!-- End of game -->
+    <p v-if="username && !currentQuestion && !loading">Game over! You scored {{ score }}/{{ questions.length }}</p>
+    <button v-if="username && !currentQuestion && !loading" @click="resetGame">Restart</button>
+
+    <!-- Loading state -->
+    <p v-if="username && loading">Loading questions...</p>
+  </div>
   </template>
   
   <script>
+  import { ref, reactive, computed, onMounted } from 'vue';
   import axios from 'axios';
-  import Question from './Question.vue';  // Import the Question component
-  
+  import Question from './Question.vue';
+
+
   export default {
     components: { Question },
-    data() {
-      return {
-        currentQuestionIndex: 0,
-        score: 0,
-        questions: [],
-        loading: true,
-        selectedAnswer: null,  // Tracks the selected answer
-        isCorrect: false,      // Tracks if the selected answer is correct
-      };
-    },
-    computed: {
-      currentQuestion() {
-        return this.questions[this.currentQuestionIndex] || null;
-      },
-      shuffledAnswers() {
-        if (!this.currentQuestion) return [];
+
+    setup() {
+      const username = ref('');
+      const inputUsername = ref('');
+      const score = ref(0);
+      const selectedAnswer = ref(null);
+      const isCorrect = ref(false);
+      const currentQuestionIndex = ref(0);
+      const questions = ref([]);
+      const loading = ref(true);
+
+  
+      const currentQuestion = computed(() => {
+        return questions.value[currentQuestionIndex.value] || null;
+      });
+  
+      const shuffledAnswers = computed(() => {
+        if (!currentQuestion.value) return [];
         const answers = [
-          ...this.currentQuestion.incorrect_answers.map(answer => this.decodeHTMLEntities(answer)),
-          this.decodeHTMLEntities(this.currentQuestion.correct_answer)
+          ...currentQuestion.value.incorrect_answers.map(answer => decodeHTMLEntities(answer)),
+          decodeHTMLEntities(currentQuestion.value.correct_answer)
         ];
-        return this.shuffle(answers);
-      }
-    },
-    methods: {
-      async fetchQuestions() {
+        return shuffle(answers);
+      });
+  
+      const fetchQuestions = async () => {
         try {
-          const response = await axios.get('https://opentdb.com/api.php?amount=5&type=multiple'); // Fetch 5 questions
-          this.questions = response.data.results;
-          this.loading = false;
+          const response = await axios.get('https://opentdb.com/api.php?amount=5&type=multiple');
+          questions.value = response.data.results;
+          loading.value = false;
         } catch (error) {
-          console.error("Failed to fetch questions:", error);
-          this.loading = false;
+          console.error('Error fetching questions:', error);
+          loading.value = false;
         }
-      },
-      handleAnswer(selectedAnswer) {
-        this.selectedAnswer = selectedAnswer;
-        const correctAnswer = this.decodeHTMLEntities(this.currentQuestion.correct_answer);
-        this.isCorrect = selectedAnswer === correctAnswer;
-        if (this.isCorrect) {
-          this.score++;
+      };
+
+      const handleAnswer = (answer) => {
+        selectedAnswer.value = answer;
+        const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
+        isCorrect.value = answer === correctAnswer;
+        if (isCorrect.value) {
+          score.value++;
         }
-      },
-      nextQuestion() {
-        this.selectedAnswer = null; // Reset the selected answer
-        this.isCorrect = false;
-        this.currentQuestionIndex++;
-      },
-      resetGame() {
-        this.currentQuestionIndex = 0;
-        this.score = 0;
-        this.fetchQuestions();  // Fetch new set of questions
-      },
-      shuffle(array) {
+      };
+
+      const nextQuestion = () => {
+        selectedAnswer.value = null;
+        isCorrect.value = false;
+        currentQuestionIndex.value++;
+      };
+
+      const resetGame = () => {
+        currentQuestionIndex.value = 0;
+        score.value = 0;
+        fetchQuestions();
+      };
+
+      const shuffle = (array) => {
         for (let i = array.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
-      },
-      decodeHTMLEntities(str) {
+      };
+  
+      const decodeHTMLEntities = (text) => {
         const textArea = document.createElement('textarea');
-        textArea.innerHTML = str;
+        textArea.innerHTML = text;
         return textArea.value;
-      }
-    },
-    mounted() {
-      this.fetchQuestions();  // Fetch questions when the component is mounted
+      };
+
+      const startGame = () => {
+        if (inputUsername.value.trim()) {
+          username.value = inputUsername.value.trim();
+          fetchQuestions();
+        }
+      };
+  
+      onMounted( () => {
+        //fetchQuestions();
+      });
+  
+      return {
+        username,
+        inputUsername,
+        score,
+        loading,
+        selectedAnswer,
+        isCorrect,
+        currentQuestionIndex,
+        questions,
+        currentQuestion,
+        shuffledAnswers,
+        handleAnswer,
+        nextQuestion,
+        resetGame,
+        fetchQuestions,
+        decodeHTMLEntities,
+        startGame,
+        shuffle
+      };
     }
-  }
+  };
   </script>
   
   <style scoped>
   /* Add any styles you need */
+  .username-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 50px;
+}
+
   .feedback {
     margin-top: 20px;
     text-align: center;
   }
   
   .score-display {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
     font-weight: bold;
     font-size: 18px;
     background: #f4f4f4;
@@ -136,8 +191,6 @@
         width: 100%;
         margin-top: 5px;
     }
-}
-
-
+  }
   </style>
   
