@@ -4,6 +4,27 @@
       <h2>Welcome to the Trivia Game!</h2>
       <p>Please enter your username to start:</p>
       <input v-model="inputUsername" placeholder="Enter your username" />
+      
+      <button @click="showCategoryDialog = true">Choose Categories</button>
+      <dialog v-if="showCategoryDialog" @close="showCategoryDialog = false" open>
+        <h3>Select Categories</h3>
+        <div>
+          <input type="checkbox" id="select-all" @change="toggleSelectAll" :checked="isAllSelected" />
+          <label for="select-all">{{ isAllSelected ? 'Select None' : 'Select All' }}</label>
+        </div>
+
+        <div class="category-container">
+          <ul class="categories">
+            <ul v-for="category in categories" :key="category.id">
+              <input type="checkbox" :id="category.id" :value="category.name" v-model="selectedCategories" />
+              <label :for="category.id">{{ category.name }}</label>
+            </ul>
+          </ul>
+        </div>
+        
+        <button @click="confirmCategories">Confirm</button>
+        <button @click="closeDialog">Cancel</button>
+      </dialog>
       <button @click="startGame">Start</button>
     </div>
 
@@ -51,11 +72,33 @@
   const currentQuestionIndex = ref(0);
   const questions = ref([]);
   const loading = ref(true);
+  const showCategoryDialog = ref(false);
+  const categories = ref([]);
+  const selectedCategories = ref([]);
+  const isAllSelected = computed(() => selectedCategories.value.length === categories.value.length);
 
+
+  const toggleSelectAll = () => {
+      if (isAllSelected.value) {
+        selectedCategories.value = [];
+      } else {
+        selectedCategories.value = categories.value.map(category => category.name);
+      }
+    };
 
   const currentQuestion = computed(() => {
     return questions.value[currentQuestionIndex.value] || null;
   });
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get('https://opentdb.com/api_category.php');
+      categories.value = response.data.trivia_categories;
+      selectedCategories.value = categories.value.map(category => category.name);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const shuffledAnswers = computed(() => {
     if (!currentQuestion.value) return [];
@@ -68,8 +111,10 @@
 
   const fetchQuestions = async () => {
     try {
-      const response = await axios.get('https://opentdb.com/api.php?amount=5&type=multiple');
+      const response = await axios.get('https://opentdb.com/api.php?amount=50&type=multiple');
       questions.value = response.data.results;
+      questions.value = questions.value.filter(question => selectedCategories.value.includes(question.category));
+      questions.value = questions.value.slice(0, 5);
       loading.value = false;
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -116,12 +161,22 @@
     if (inputUsername.value.trim()) {
       username.value = inputUsername.value.trim();
       fetchQuestions();
+      console.log(selectedCategories.value);
     }
   };
 
-  // onMounted( () => {
-  //   //fetchQuestions();
-  // });
+  const confirmCategories = () => {
+    console.log('Selected categories:', selectedCategories.value);
+    showCategoryDialog.value = false;
+  };
+
+  const closeDialog = () => {
+    showCategoryDialog.value = false;
+  };
+
+  onMounted( () => {
+    fetchCategories();
+  });
   
 </script>
   
@@ -151,6 +206,25 @@
   button {
     margin-top: 10px;
   }
+
+.category-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.categories {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two-column layout */
+  column-gap: 20px; /* Space between columns */
+}
+
+.categories ul {
+  text-align: left; /* Left align each category */
+  margin-bottom: 10px; /* Space between category checkboxes */
+}
 
 /* Media query for mobile devices */
 @media (max-width: 600px) {
