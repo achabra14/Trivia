@@ -1,6 +1,6 @@
 <template>
   <div class="trivia-game">
-    <WelcomeScreen v-if="!username" @start-game="(inputUsername) => startGame(inputUsername)" />
+    <WelcomeScreen v-if="!username" @start-game="(inputUsername, categories) => startGame(inputUsername, categories)" />
      <!-- Trivia game begins once username is entered -->
      <div v-if="username && currentQuestion">
       <h3>{{ decodeHTMLEntities(currentQuestion.category) }}</h3>
@@ -39,39 +39,19 @@
   import WelcomeScreen from './WelcomeScreen.vue';
 
   const username = ref('');
-  const inputUsername = ref('');
   const score = ref(0);
   const selectedAnswer = ref(null);
   const isCorrect = ref(false);
   const currentQuestionIndex = ref(0);
   const questions = ref([]);
   const loading = ref(true);
-  const showCategoryDialog = ref(false);
-  const categories = ref([]);
   const selectedCategories = ref([]);
-  const isAllSelected = computed(() => selectedCategories.value.length === categories.value.length);
 
-  // const toggleSelectAll = () => {
-  //     if (isAllSelected.value) {
-  //       selectedCategories.value = [];
-  //     } else {
-  //       selectedCategories.value = categories.value.map(category => category.name);
-  //     }
-  //   };
+
 
   const currentQuestion = computed(() => {
     return questions.value[currentQuestionIndex.value] || null;
   });
-
-  // const fetchCategories = async () => {
-  //   try {
-  //     const response = await axios.get('https://opentdb.com/api_category.php');
-  //     categories.value = response.data.trivia_categories;
-  //     selectedCategories.value = categories.value.map(category => category.name);
-  //   } catch (error) {
-  //     console.error('Error fetching categories:', error);
-  //   }
-  // };
 
   const shuffledAnswers = computed(() => {
     if (!currentQuestion.value) return [];
@@ -130,34 +110,14 @@
     return textArea.value;
   };
 
-  const startGame = (inputUsername) => {
-
+  const startGame = (inputUsername, categories) => {
     username.value = inputUsername.trim();
     if (username) {
       fetchQuestions();
+      selectedCategories.value = categories;
       //console.log(selectedCategories.value);
     }
   };
-
-  // const startGame = () => {
-  //   if (inputUsername.value.trim()) {
-  //     username.value = inputUsername.value.trim();
-  //     fetchQuestions();
-  //     console.log(selectedCategories.value);
-  //   }
-  // };
-
-  // const confirmCategories = () => {
-  //   showCategoryDialog.value = false;
-  // };
-
-  // const closeDialog = () => {
-  //   showCategoryDialog.value = false;
-  // };
-
-  onMounted( () => {
-    //fetchCategories();
-  });
   
 </script>
   
@@ -179,24 +139,7 @@
     margin-top: 10px;
   }
 
-.category-container {
-  display: flex;
-  justify-content: flex-start;
-}
 
-.categories {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Two-column layout */
-  column-gap: 20px; /* Space between columns */
-}
-
-.categories ul {
-  text-align: left; /* Left align each category */
-  margin-bottom: 10px; /* Space between category checkboxes */
-}
 
 /* Media query for mobile devices */
 @media (max-width: 600px) {

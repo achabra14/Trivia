@@ -29,46 +29,24 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 
-const props = defineProps({
-  modelValue: String,
-  modelValueSelectedCategories: Array,
-  categories: Array
-});
+const emit = defineEmits(['start-game']);
 
-const emit = defineEmits(['update:modelValue', 'update:modelValueSelectedCategories', 'update:modelValueShowCategoryDialog', 'start-game']);
-
-// what was chatGPT doing here?
-//const localInputUsername = ref(props.modelValue);
 const inputUsername = ref('');
-//const localSelectedCategories = ref(props.modelValueSelectedCategories);
 const categories = ref([]);
 const selectedCategories = ref([]);
 const showCategoryDialog = ref(false);
+const isAllSelected = computed(() => selectedCategories.value.length === categories.value.length);
 
-// watch(localInputUsername, (newValue) => {
-//   emit('update:modelValue', newValue);
-// });
-
-// watch(localSelectedCategories, (newValue) => {
-//   emit('update:modelValueSelectedCategories', newValue);
-// });
-
-watch(showCategoryDialog, (newValue) => {
-  emit('update:modelValueShowCategoryDialog', newValue);
-});
-
-const isAllSelected = ref(false);
 
 const toggleSelectAll = () => {
   if (isAllSelected.value) {
-    localSelectedCategories.value = [];
+    selectedCategories.value = [];
   } else {
-    localSelectedCategories.value = props.categories.map(category => category.name);
+    selectedCategories.value = categories.value.map(category => category.name);
   }
-  isAllSelected.value = !isAllSelected.value;
 };
 
 const confirmCategories = () => {
@@ -80,7 +58,7 @@ const closeDialog = () => {
 };
 
 const startGame = () => {
-  emit('start-game', inputUsername.value);
+  emit('start-game', inputUsername.value, selectedCategories.value);
 };
 
 const fetchCategories = async () => {
@@ -104,5 +82,24 @@ const fetchCategories = async () => {
   align-items: center;
   justify-content: center;
   margin-top: 50px;
+
+.category-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.categories {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two-column layout */
+  column-gap: 20px; /* Space between columns */
+}
+
+.categories ul {
+  text-align: left; /* Left align each category */
+  margin-bottom: 10px; /* Space between category checkboxes */
+}
 }
 </style>
