@@ -1,33 +1,6 @@
 <template>
   <div class="trivia-game">
-    <div v-if="!username" class="username-screen">
-      <h2>Welcome to the Trivia Game!</h2>
-      <p>Please enter your username to start:</p>
-      <input v-model="inputUsername" placeholder="Enter your username" />
-      
-      <button @click="showCategoryDialog = true">Choose Categories</button>
-      <dialog v-if="showCategoryDialog" @close="showCategoryDialog = false" open>
-        <h3>Select Categories</h3>
-        <div>
-          <input type="checkbox" id="select-all" @change="toggleSelectAll" :checked="isAllSelected" />
-          <label for="select-all">{{ isAllSelected ? 'Select None' : 'Select All' }}</label>
-        </div>
-
-        <div class="category-container">
-          <ul class="categories">
-            <ul v-for="category in categories" :key="category.id">
-              <input type="checkbox" :id="category.id" :value="category.name" v-model="selectedCategories" />
-              <label :for="category.id">{{ category.name }}</label>
-            </ul>
-          </ul>
-        </div>
-        
-        <button @click="confirmCategories">Confirm</button>
-        <button @click="closeDialog">Cancel</button>
-      </dialog>
-      <button @click="startGame">Start</button>
-    </div>
-
+    <WelcomeScreen v-if="!username" @start-game="(inputUsername) => startGame(inputUsername)" />
      <!-- Trivia game begins once username is entered -->
      <div v-if="username && currentQuestion">
       <h3>{{ decodeHTMLEntities(currentQuestion.category) }}</h3>
@@ -63,6 +36,7 @@
   import { ref, computed, onMounted } from 'vue';
   import axios from 'axios';
   import Question from './Question.vue';
+  import WelcomeScreen from './WelcomeScreen.vue';
 
   const username = ref('');
   const inputUsername = ref('');
@@ -77,28 +51,27 @@
   const selectedCategories = ref([]);
   const isAllSelected = computed(() => selectedCategories.value.length === categories.value.length);
 
-
-  const toggleSelectAll = () => {
-      if (isAllSelected.value) {
-        selectedCategories.value = [];
-      } else {
-        selectedCategories.value = categories.value.map(category => category.name);
-      }
-    };
+  // const toggleSelectAll = () => {
+  //     if (isAllSelected.value) {
+  //       selectedCategories.value = [];
+  //     } else {
+  //       selectedCategories.value = categories.value.map(category => category.name);
+  //     }
+  //   };
 
   const currentQuestion = computed(() => {
     return questions.value[currentQuestionIndex.value] || null;
   });
 
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get('https://opentdb.com/api_category.php');
-      categories.value = response.data.trivia_categories;
-      selectedCategories.value = categories.value.map(category => category.name);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
+  // const fetchCategories = async () => {
+  //   try {
+  //     const response = await axios.get('https://opentdb.com/api_category.php');
+  //     categories.value = response.data.trivia_categories;
+  //     selectedCategories.value = categories.value.map(category => category.name);
+  //   } catch (error) {
+  //     console.error('Error fetching categories:', error);
+  //   }
+  // };
 
   const shuffledAnswers = computed(() => {
     if (!currentQuestion.value) return [];
@@ -157,39 +130,38 @@
     return textArea.value;
   };
 
-  const startGame = () => {
-    if (inputUsername.value.trim()) {
-      username.value = inputUsername.value.trim();
+  const startGame = (inputUsername) => {
+
+    username.value = inputUsername.trim();
+    if (username) {
       fetchQuestions();
-      console.log(selectedCategories.value);
+      //console.log(selectedCategories.value);
     }
   };
 
-  const confirmCategories = () => {
-    console.log('Selected categories:', selectedCategories.value);
-    showCategoryDialog.value = false;
-  };
+  // const startGame = () => {
+  //   if (inputUsername.value.trim()) {
+  //     username.value = inputUsername.value.trim();
+  //     fetchQuestions();
+  //     console.log(selectedCategories.value);
+  //   }
+  // };
 
-  const closeDialog = () => {
-    showCategoryDialog.value = false;
-  };
+  // const confirmCategories = () => {
+  //   showCategoryDialog.value = false;
+  // };
+
+  // const closeDialog = () => {
+  //   showCategoryDialog.value = false;
+  // };
 
   onMounted( () => {
-    fetchCategories();
+    //fetchCategories();
   });
   
 </script>
   
 <style scoped>
-  /* Add any styles you need */
-  .username-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin-top: 50px;
-}
-
   .feedback {
     margin-top: 20px;
     text-align: center;
