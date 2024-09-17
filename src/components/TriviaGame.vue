@@ -33,91 +33,92 @@
   </template>
   
 <script setup>
-  import { ref, computed, onMounted } from 'vue';
-  import axios from 'axios';
-  import Question from './Question.vue';
-  import WelcomeScreen from './WelcomeScreen.vue';
 
-  const username = ref('');
-  const score = ref(0);
-  const selectedAnswer = ref(null);
-  const isCorrect = ref(false);
-  const currentQuestionIndex = ref(0);
-  const questions = ref([]);
-  const loading = ref(true);
-  const selectedCategories = ref([]);
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+import Question from './Question.vue';
+import WelcomeScreen from './WelcomeScreen.vue';
+
+const username = ref('');
+const score = ref(0);
+const selectedAnswer = ref(null);
+const isCorrect = ref(false);
+const currentQuestionIndex = ref(0);
+const questions = ref([]);
+const loading = ref(true);
+const selectedCategories = ref([]);
 
 
 
-  const currentQuestion = computed(() => {
-    return questions.value[currentQuestionIndex.value] || null;
-  });
+const currentQuestion = computed(() => {
+  return questions.value[currentQuestionIndex.value] || null;
+});
 
-  const shuffledAnswers = computed(() => {
-    if (!currentQuestion.value) return [];
-    const answers = [
-      ...currentQuestion.value.incorrect_answers.map(answer => decodeHTMLEntities(answer)),
-      decodeHTMLEntities(currentQuestion.value.correct_answer)
-    ];
-    return shuffle(answers);
-  });
+const shuffledAnswers = computed(() => {
+  if (!currentQuestion.value) return [];
+  const answers = [
+    ...currentQuestion.value.incorrect_answers.map(answer => decodeHTMLEntities(answer)),
+    decodeHTMLEntities(currentQuestion.value.correct_answer)
+  ];
+  return shuffle(answers);
+});
 
-  const fetchQuestions = async () => {
-    try {
-      const response = await axios.get('https://opentdb.com/api.php?amount=50&type=multiple');
-      questions.value = response.data.results;
-      questions.value = questions.value.filter(question => selectedCategories.value.includes(question.category));
-      questions.value = questions.value.slice(0, 5);
-      loading.value = false;
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-      loading.value = false;
-    }
-  };
+async function fetchQuestions() {
+  try {
+    const response = await axios.get('https://opentdb.com/api.php?amount=50&type=multiple');
+    questions.value = response.data.results;
+    questions.value = questions.value.filter(question => selectedCategories.value.includes(question.category));
+    questions.value = questions.value.slice(0, 5);
+    loading.value = false;
+  } catch (error) {
+    console.error('Error fetching questions:', error);
+    loading.value = false;
+  }
+}
 
-  const handleAnswer = (answer) => {
-    selectedAnswer.value = answer;
-    const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
-    isCorrect.value = answer === correctAnswer;
-    if (isCorrect.value) {
-      score.value++;
-    }
-  };
+function handleAnswer(answer) {
+  selectedAnswer.value = answer;
+  const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
+  isCorrect.value = answer === correctAnswer;
+  if (isCorrect.value) {
+    score.value++;
+  }
+}
 
-  const nextQuestion = () => {
-    selectedAnswer.value = null;
-    isCorrect.value = false;
-    currentQuestionIndex.value++;
-  };
+function nextQuestion() {
+  selectedAnswer.value = null;
+  isCorrect.value = false;
+  currentQuestionIndex.value++;
+}
 
-  const resetGame = () => {
-    currentQuestionIndex.value = 0;
-    score.value = 0;
+function resetGame() {
+  currentQuestionIndex.value = 0;
+  score.value = 0;
+  fetchQuestions();
+}
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
+function decodeHTMLEntities(text) {
+  const textArea = document.createElement('textarea');
+  textArea.innerHTML = text;
+  return textArea.value;
+};
+
+function startGame(inputUsername, categories) {
+  username.value = inputUsername.trim();
+  if (username) {
     fetchQuestions();
-  };
-
-  const shuffle = (array) => {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  };
-
-  const decodeHTMLEntities = (text) => {
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-  };
-
-  const startGame = (inputUsername, categories) => {
-    username.value = inputUsername.trim();
-    if (username) {
-      fetchQuestions();
-      selectedCategories.value = categories;
-      //console.log(selectedCategories.value);
-    }
-  };
+    selectedCategories.value = categories;
+    //console.log(selectedCategories.value);
+  }
+};
   
 </script>
   

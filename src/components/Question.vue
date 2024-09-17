@@ -14,71 +14,62 @@
     </div>
   </template>
   
-  <script>
-  import { ref, watch } from 'vue';
+<script setup>
+import { ref, watch, } from 'vue';
 
-  export default {
-    props: {
-      question: String,
-      answers: Array,
-      selectedAnswer: String,
-      correctAnswer: String
-    },
-    setup(props, { emit }) {
-      const selectedAnswer = ref(null);
+const props = defineProps({
+  question: String,
+  answers: Array,
+  selectedAnswer: String,
+  correctAnswer: String
+});
 
-      const selectAnswer = (answer) => {
-        selectedAnswer.value = answer;
-        emit('answer-selected', answer);
-      };
+const emit = defineEmits(['answer-selected']);
 
-      const buttonStyle = (answer) => {
-        if (!selectedAnswer.value) return {};
+const selectedAnswer = ref(null);
 
-        if (answer === props.correctAnswer) {
-          return { backgroundColor: 'green', color: 'white' };
-        } else if (answer === selectedAnswer.value) {
-          return { backgroundColor: 'red', color: 'white' };
-        } else {
-          return {};
-        }
-      };
+function selectAnswer(answer) {
+  selectedAnswer.value = answer;
+  emit('answer-selected', answer);
+};
 
-      
+function buttonStyle(answer) {
+  if (!selectedAnswer.value) return {};
 
-      // Reset selected answer if a new question is loaded
-      watch(() => props.question, () => {
-        selectedAnswer.value = null;
-      });
+  if (answer === props.correctAnswer) {
+    return { backgroundColor: 'green', color: 'white' };
+  } else if (answer === selectedAnswer.value) {
+    return { backgroundColor: 'red', color: 'white' };
+  } else {
+    return {};
+  }
+};
 
-      return {
-        selectedAnswer,
-        selectAnswer,
-        buttonStyle
-      };
-    }
-  };
-  </script>
+// Reset selected answer if a new question is loaded
+watch(() => props.question, () => {
+  selectedAnswer.value = null;
+});
+</script>
 
   
-  <style scoped>
-  /* Adjust button styles */
-  button {
-    padding: 10px;
-    margin: 5px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-    width: 150px;
-  }
-  
-  button:disabled {
-    cursor: not-allowed;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  </style>
+<style scoped>
+/* Adjust button styles */
+button {
+  padding: 10px;
+  margin: 5px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  width: 150px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+</style>
   

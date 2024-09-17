@@ -41,27 +41,27 @@ const showCategoryDialog = ref(false);
 const isAllSelected = computed(() => selectedCategories.value.length === categories.value.length);
 
 
-const toggleSelectAll = () => {
+function toggleSelectAll() {
   if (isAllSelected.value) {
     selectedCategories.value = [];
   } else {
     selectedCategories.value = categories.value.map(category => category.name);
   }
-};
+}
 
-const confirmCategories = () => {
+function confirmCategories() {
   showCategoryDialog.value = false;
-};
+}
 
-const closeDialog = () => {
+function closeDialog() {
   showCategoryDialog.value = false;
-};
+}
 
-const startGame = () => {
+function startGame() {
   emit('start-game', inputUsername.value, selectedCategories.value);
-};
+}
 
-const fetchCategories = async () => {
+  async function fetchCategories() {
     try {
       const response = await axios.get('https://opentdb.com/api_category.php');
       categories.value = response.data.trivia_categories;
@@ -69,7 +69,7 @@ const fetchCategories = async () => {
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
-  };
+  }
 
   fetchCategories();
 
