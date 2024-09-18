@@ -1,6 +1,9 @@
 <template>
-<div class="question">
-  <h4>{{ question }}</h4>
+<div>
+  <div class="question">
+    <h4>{{ question }}</h4>
+    <button @click="passSelected" class="pass-button" :disabled="!!selectedAnswer">Pass</button>
+  </div>
   <ul>
     <li 
       v-for="answer in answers" 
@@ -33,6 +36,11 @@ function selectAnswer(answer) {
   emit('answer-selected', answer);
 };
 
+function passSelected() {
+  selectedAnswer.value = 'pass';
+  emit('answer-selected', 'pass');
+};
+
 function buttonStyle(answer) {
   if (!selectedAnswer.value) return {};
 
@@ -53,7 +61,29 @@ watch(() => props.question, () => {
 
   
 <style scoped>
-/* Adjust button styles */
+
+.question {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.pass-button {
+  font-size: 14px;
+  padding: 5px 10px;
+  background-color: #d3d3d3;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: auto;
+}
+
+.pass-button:hover {
+  background-color: #b0b0b0;
+}
+
 button {
   padding: 10px;
   margin: 5px;

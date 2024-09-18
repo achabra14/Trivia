@@ -21,11 +21,9 @@
 
     <!-- Feedback and Next Question Button -->
     <div v-if="selectedAnswer" class="feedback">
-      <p>{{ isCorrect ? 'Correct! 🎉' : 'Incorrect!' }}</p>
+      <p>{{ feedbackText }}</p>
       <button @click="nextQuestion">Next Question</button>
     </div>
-    <!-- Username and score displayed in the bottom right corner -->
-    
   </div>
 
   <!-- End of game -->
@@ -47,17 +45,16 @@ import ScoreContainer from './ScoreContainer.vue';
 
 const username = ref('');
 const selectedAnswer = ref(null);
-const isCorrect = ref(false);
 const currentQuestionIndex = ref(0);
 const questions = ref([]);
 const loading = ref(true);
 const selectedCategories = ref([]);
 const currentQuestionValue = computed(() => (currentQuestionIndex.value + 1) * 100);
+const feedbackText = ref('');
 
 const heroScore = ref(0);
 const ai1Score = ref(0);
 const ai2Score = ref(0);
-// Sample players with name and score (user + AI players)
 
 const players = ref([
 { name: username, score: heroScore, profilePic: 'images/evie_goofy.jpg' },
@@ -118,18 +115,21 @@ async function fetchQuestions() {
 function handleAnswer(answer) {
   selectedAnswer.value = answer;
   const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
-  isCorrect.value = answer === correctAnswer;
-  if (isCorrect.value) {
+  if (answer === correctAnswer) {
+    feedbackText.value = 'Correct! 🎉';
     heroScore.value += currentQuestionValue.value;
   }
+  else if (answer === 'pass') {
+    feedbackText.value = 'You passed! 😅';
+  }
   else {
+    feedbackText.value = 'Incorrect!';
     heroScore.value -= currentQuestionValue.value;
   }
 }
 
 function nextQuestion() {
   selectedAnswer.value = null;
-  isCorrect.value = false;
   currentQuestionIndex.value++;
 }
 
