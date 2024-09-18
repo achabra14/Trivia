@@ -27,6 +27,11 @@
   </div>
 
   <!-- End of game -->
+  <BetweenRounds 
+    v-if="username && !currentQuestion && currentRound < 3" 
+    :round="currentRound" 
+    :players="players"
+  />
   <p v-if="username && !currentQuestion && !loading">Game over! You scored {{ heroScore }}</p>
   <button v-if="username && !currentQuestion && !loading" @click="resetGame">Restart</button>
 
@@ -42,10 +47,13 @@ import axios from 'axios';
 import Question from './Question.vue';
 import WelcomeScreen from './WelcomeScreen.vue';
 import ScoreContainer from './ScoreContainer.vue';
+import BetweenRounds from './BetweenRounds.vue';
 
 const username = ref('');
 const selectedAnswer = ref(null);
 const currentQuestionIndex = ref(0);
+const currentRound = ref(1);
+
 const questions = ref([]);
 const loading = ref(true);
 const selectedCategories = ref([]);
@@ -168,6 +176,7 @@ function resetGame() {
   heroScore.value = 0;
   ai1Score.value = 0;
   ai2Score.value = 0;
+  loading.value = true;
   fetchQuestions();
   fetchAllProfilePicsAndNames();
 }

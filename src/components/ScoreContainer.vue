@@ -1,6 +1,6 @@
 <template>
-<div class="score-container">
-    <div class="player-score" v-for="(player, index) in players" :key="index">
+<div class="score-container" ref="scoreContainerRef">
+    <div class="player-score" v-for="(player, index) in sortedPlayers" :key="index">
         <img :src="player.profilePic" alt="Profile Picture" class="profile-pic" />
         <div class="player-info">
             <span class="player-name">{{ player.name }}</span>
@@ -11,10 +11,28 @@
 </template>
   
 <script setup>
+import { computed, ref, onMounted } from 'vue';
 
 const props = defineProps({
-    players: Array
+    players: Array,
+    flexDirection: {
+        type: String,
+        default: 'row'
+    }
 });
+
+const sortedPlayers = computed(() => {
+    return [...props.players].sort((a, b) => b.score - a.score);
+});
+
+const scoreContainerRef = ref(null);
+
+onMounted(() => {
+    if (props.flexDirection === 'column') {
+        scoreContainerRef.value.classList.add('flex-column');
+    }
+});
+
 
 </script>
   
@@ -26,6 +44,11 @@ const props = defineProps({
     padding: 10px;
     color: #fff;
     box-sizing: border-box;
+}
+
+.flex-column {
+  flex-direction: column;
+  gap: 10px; /* Add gap for spacing between items */
 }
 
 .player-score {
