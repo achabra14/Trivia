@@ -59,10 +59,8 @@ const ai1Score = ref(0);
 const ai2Score = ref(0);
 // Sample players with name and score (user + AI players)
 
-
-
 const players = ref([
-{ name: username, score: heroScore, profilePic: '' },
+{ name: username, score: heroScore, profilePic: 'images/evie_goofy.jpg' },
 { name: '', score: ai1Score, profilePic: '' },
 { name: '', score: ai2Score, profilePic: '' }
 ]);
@@ -87,9 +85,11 @@ async function fetchProfilePicAndName(playerIndex) {
     const thumbnail = data.results[0].picture.thumbnail; // Get the thumbnail URL
     const username = data.results[0].login.username;
 
-    players.value[playerIndex].profilePic = thumbnail;   // Update the player profilePic
-    if (playerIndex != 0)
+       // Update the player profilePic
+    if (playerIndex != 0) {
+      players.value[playerIndex].profilePic = thumbnail;
       players.value[playerIndex].name = username;
+    }
   } catch (error) {
     console.error('Error fetching profile picture:', error);
   }
@@ -162,6 +162,8 @@ function startGame(inputUsername, categories) {
 };
 
 fetchAllProfilePicsAndNames();
+
+
   
 </script>
   
