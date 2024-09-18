@@ -28,11 +28,11 @@
 
   <!-- End of game -->
   <BetweenRounds 
-    v-if="username && !currentQuestion && currentRound < 3" 
-    :round="currentRound" 
+    v-if="username && !currentQuestion" 
+    :round="currentRound"
     :players="players"
+    @next-round="advanceRound"
   />
-  <p v-if="username && !currentQuestion && !loading">Game over! You scored {{ heroScore }}</p>
   <button v-if="username && !currentQuestion && !loading" @click="resetGame">Restart</button>
 
   <!-- Loading state -->
@@ -57,7 +57,7 @@ const currentRound = ref(1);
 const questions = ref([]);
 const loading = ref(true);
 const selectedCategories = ref([]);
-const currentQuestionValue = computed(() => (currentQuestionIndex.value + 1) * 100);
+const currentQuestionValue = computed(() => (currentQuestionIndex.value + 1) * (100 * currentRound.value));
 const feedbackText = ref('');
 
 const heroScore = ref(0);
@@ -169,6 +169,12 @@ function simAIResult(probPass, probCorrect) {
 function nextQuestion() {
   selectedAnswer.value = null;
   currentQuestionIndex.value++;
+}
+
+function advanceRound() {
+  currentRound.value++;
+  fetchQuestions();
+  currentQuestionIndex.value = 0;
 }
 
 function resetGame() {
