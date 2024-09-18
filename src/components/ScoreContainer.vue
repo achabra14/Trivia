@@ -21,11 +21,11 @@ const props = defineProps({
 <style scoped>
 .score-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     width: 100%;
     padding: 10px;
-    background-color: #f1f1f1;
     color: #fff;
+    box-sizing: border-box;
 }
 
 .player-score {
@@ -36,8 +36,11 @@ const props = defineProps({
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     flex: 1;
-    max-width: 33%;
-    margin: 0 10px;
+    flex-basis: 28%;
+    flex-shrink: 0;
+    flex-grow: 0;
+    margin: 0 5px;
+    white-space: nowrap; 
 }
 
 .profile-pic {
@@ -56,6 +59,10 @@ const props = defineProps({
 .player-name {
     font-size: 16px;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .player-score-value {

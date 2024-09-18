@@ -54,5 +54,12 @@ button:focus {
 button:hover {
   background-color: #2980b9;
 }
+
+.logoImage {
+  width: 100px;
+  height: 1000px;
+  margin-right: 10px;
+}
+
 </style>
 
