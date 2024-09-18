@@ -126,6 +126,36 @@ function handleAnswer(answer) {
     feedbackText.value = 'Incorrect!';
     heroScore.value -= currentQuestionValue.value;
   }
+
+  const AIPASS = 0.2;
+  const AICORRECT = 0.7;
+
+  // simulate AI players
+  let ai1Result = simAIResult(AIPASS, AICORRECT);
+  if (ai1Result === 'correct') {
+    ai1Score.value += currentQuestionValue.value;
+  }
+  else if (ai1Result === 'incorrect') {
+    ai1Score.value -= currentQuestionValue.value;
+  }
+
+  let ai2Result = simAIResult(0.2, 0.7);
+  if (ai2Result === 'correct') {
+    ai2Score.value += currentQuestionValue.value;
+  }
+  else if (ai2Result === 'incorrect') {
+    ai2Score.value -= currentQuestionValue.value;
+  }
+}
+
+function simAIResult(probPass, probCorrect) {
+  const passSim = Math.random();
+  if (passSim < probPass)
+    return 'pass';
+
+  const correctSim = Math.random();
+
+  return (correctSim < probCorrect) ? 'correct' : 'incorrect';
 }
 
 function nextQuestion() {
@@ -136,7 +166,10 @@ function nextQuestion() {
 function resetGame() {
   currentQuestionIndex.value = 0;
   heroScore.value = 0;
+  ai1Score.value = 0;
+  ai2Score.value = 0;
   fetchQuestions();
+  fetchAllProfilePicsAndNames();
 }
 
 function shuffle(array) {
