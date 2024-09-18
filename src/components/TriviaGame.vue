@@ -33,8 +33,6 @@
     :players="players"
     @next-round="advanceRound"
   />
-  <button v-if="username && !currentQuestion && !loading" @click="resetGame">Restart</button>
-
   <!-- Loading state -->
   <p v-if="username && loading">Loading questions...</p>
 </div>
@@ -172,7 +170,13 @@ function nextQuestion() {
 }
 
 function advanceRound() {
+  if (currentRound.value == 2) {
+    resetGame();
+    return;
+  }
+  
   currentRound.value++;
+  
   fetchQuestions();
   currentQuestionIndex.value = 0;
 }
@@ -182,6 +186,7 @@ function resetGame() {
   heroScore.value = 0;
   ai1Score.value = 0;
   ai2Score.value = 0;
+  currentRound.value = 1;
   loading.value = true;
   fetchQuestions();
   fetchAllProfilePicsAndNames();

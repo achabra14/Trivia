@@ -66,6 +66,10 @@ async function fetchCategories() {
     const response = await axios.get('https://opentdb.com/api_category.php');
     categories.value = response.data.trivia_categories;
     selectedCategories.value = categories.value.map(category => category.name);
+    selectedCategories.value = selectedCategories.value.filter(category => 
+      category != 'Entertainment: Video Games' &&
+      category != 'Entertainment: Japanese Anime & Manga'
+    )
   } 
   catch (error) {
     console.error('Error fetching categories:', error);
