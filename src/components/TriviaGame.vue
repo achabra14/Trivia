@@ -1,17 +1,15 @@
 <template>
 <div class="trivia-game">
   <WelcomeScreen 
-    v-if="!username" 
+    v-if="state === states.WELCOME" 
     @start-game="(inputUsername, categories) => startGame(inputUsername, categories)" 
   />
 
-  <!-- Trivia game begins once username is entered -->
-  <div v-if="username && currentQuestion">
+  <div v-if="state === states.QUESTION || state === states.FEEDBACK">
     <ScoreContainer :players="players" />
-    <h3>{{ `\$${currentQuestionValue} -  ${decodeHTMLEntities(currentQuestion.category)}` }}</h3>
+    <h3>{{ `${valueMessage} -  ${decodeHTMLEntities(currentQuestion.category)}` }}</h3>
     
     <Question 
-      v-if="currentQuestion" 
       :question="decodeHTMLEntities(currentQuestion.question)" 
       :answers="shuffledAnswers"
       :selected-answer="selectedAnswer"
@@ -20,21 +18,26 @@
     />
 
     <!-- Feedback and Next Question Button -->
-    <div v-if="selectedAnswer" class="feedback">
+    <div v-if="state === states.FEEDBACK" class="feedback">
       <p>{{ feedbackText }}</p>
       <button @click="nextQuestion">Next Question</button>
     </div>
   </div>
 
-  <!-- End of game -->
   <BetweenRounds 
-    v-if="username && !currentQuestion" 
+    v-if="state === states.BETWEEN_ROUNDS"
     :round="currentRound"
     :players="players"
     @next-round="advanceRound"
   />
+
+  <FinalRound
+    v-if="state === states.WAGER"
+    :final-round-category="decodeHTMLEntities(currentQuestion.category)"
+    @submit-wager="wager => onFinalRoundWagerSubmit(wager)"
+  />
   <!-- Loading state -->
-  <p v-if="username && loading">Loading questions...</p>
+  <p v-if="state === states.LOADING">Loading questions...</p>
 </div>
 </template>
   
@@ -46,6 +49,18 @@ import Question from './Question.vue';
 import WelcomeScreen from './WelcomeScreen.vue';
 import ScoreContainer from './ScoreContainer.vue';
 import BetweenRounds from './BetweenRounds.vue';
+import FinalRound from './FinalRound.vue';
+
+const states = {
+  WELCOME: 'welcome',
+  LOADING: 'loading',
+  QUESTION: 'question',
+  FEEDBACK: 'feedback',
+  BETWEEN_ROUNDS: 'between_rounds',
+  WAGER: 'wager'
+};
+
+const state = ref(states.WELCOME);
 
 const username = ref('');
 const selectedAnswer = ref(null);
@@ -55,12 +70,15 @@ const currentRound = ref(1);
 const questions = ref([]);
 const loading = ref(true);
 const selectedCategories = ref([]);
-const currentQuestionValue = computed(() => (currentQuestionIndex.value + 1) * (100 * currentRound.value));
+const currentQuestionValue = computed(() => ((currentQuestionIndex.value % 5 + 1)) * (100 * currentRound.value));
 const feedbackText = ref('');
+const valueMessage = computed(() => currentQuestionIndex.value == 10 ? 'Final Question' : `\$${currentQuestionValue.value}`);
 
 const heroScore = ref(0);
 const ai1Score = ref(0);
 const ai2Score = ref(0);
+
+const finalRoundWager = ref(0);
 
 const players = ref([
 { name: username, score: heroScore, profilePic: 'images/evie_goofy.jpg' },
@@ -71,6 +89,7 @@ const players = ref([
 const currentQuestion = computed(() => {
   return questions.value[currentQuestionIndex.value] || null;
 });
+
 
 const shuffledAnswers = computed(() => {
   if (!currentQuestion.value) return [];
@@ -110,7 +129,6 @@ async function fetchQuestions() {
     const response = await axios.get('https://opentdb.com/api.php?amount=50&type=multiple');
     questions.value = response.data.results;
     questions.value = questions.value.filter(question => selectedCategories.value.includes(question.category));
-    questions.value = questions.value.slice(0, 5);
     loading.value = false;
   } catch (error) {
     console.error('Error fetching questions:', error);
@@ -118,19 +136,27 @@ async function fetchQuestions() {
   }
 }
 
+function isFinalRound() {
+  return currentQuestionIndex.value == 10;
+}
+
 function handleAnswer(answer) {
+  state.value = states.FEEDBACK;
+
+  const questionValue = isFinalRound() ? finalRoundWager.value : currentQuestionValue.value;
+
   selectedAnswer.value = answer;
   const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
   if (answer === correctAnswer) {
     feedbackText.value = 'Correct! 🎉';
-    heroScore.value += currentQuestionValue.value;
+    heroScore.value += questionValue;
   }
   else if (answer === 'pass') {
     feedbackText.value = 'You passed! 😅';
   }
   else {
     feedbackText.value = 'Incorrect!';
-    heroScore.value -= currentQuestionValue.value;
+    heroScore.value -= questionValue;
   }
 
   const AIPASS = 0.2;
@@ -155,41 +181,56 @@ function handleAnswer(answer) {
 }
 
 function simAIResult(probPass, probCorrect) {
-  const passSim = Math.random();
-  if (passSim < probPass)
+  if (Math.random() < probPass)
     return 'pass';
 
-  const correctSim = Math.random();
-
-  return (correctSim < probCorrect) ? 'correct' : 'incorrect';
+  return (Math.random() < probCorrect) ? 'correct' : 'incorrect';
 }
 
 function nextQuestion() {
   selectedAnswer.value = null;
   currentQuestionIndex.value++;
+  if (currentQuestionIndex.value == 5 || currentQuestionIndex.value == 10 || currentQuestionIndex.value == 11) {
+    state.value = states.BETWEEN_ROUNDS;
+  }
+  else {
+    state.value = states.QUESTION;
+  }
 }
 
 function advanceRound() {
-  if (currentRound.value == 2) {
+  if (currentRound.value == 3) {
     resetGame();
     return;
   }
   
   currentRound.value++;
   
-  fetchQuestions();
-  currentQuestionIndex.value = 0;
+  if (currentRound.value == 3) {
+    state.value = states.WAGER;
+    return;
+  }
+  state.value = states.QUESTION;
 }
 
-function resetGame() {
+function onFinalRoundWagerSubmit(wager) {
+  console.log('Wager submitted:', wager);
+  finalRoundWager.value = Number(wager);
+  state.value = states.QUESTION;
+}
+
+async function resetGame() {
+  state.value = states.LOADING;
+
   currentQuestionIndex.value = 0;
   heroScore.value = 0;
   ai1Score.value = 0;
   ai2Score.value = 0;
   currentRound.value = 1;
   loading.value = true;
-  fetchQuestions();
-  fetchAllProfilePicsAndNames();
+  await fetchQuestions();
+  await fetchAllProfilePicsAndNames();
+  state.value = states.QUESTION;
 }
 
 function shuffle(array) {
@@ -206,11 +247,16 @@ function decodeHTMLEntities(text) {
   return textArea.value;
 };
 
-function startGame(inputUsername, categories) {
+async function startGame(inputUsername, categories) {
   username.value = inputUsername.trim();
+  
   if (username) {
-    fetchQuestions();
+    state.value = states.LOADING;
+
     selectedCategories.value = categories;
+    await fetchQuestions();
+    state.value = states.QUESTION;
+    
   }
 };
 

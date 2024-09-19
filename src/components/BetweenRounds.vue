@@ -31,8 +31,8 @@ function nextRound() {
 
 onMounted(() => {
     roundMessage1.value = `End of Round ${props.round}`;
-    roundMessage2.value = props.round == 2 ? 'Final Scores:' : 'Current Scores:';
-    buttonMessage.value = props.round == 2 ? 'Restart' : 'Next Round';
+    roundMessage2.value = props.round == 3 ? 'Final Scores:' : 'Current Scores:';
+    buttonMessage.value = props.round == 3 ? 'Restart' : 'Next Round';
 })
 
 </script>
