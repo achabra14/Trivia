@@ -9,9 +9,9 @@
       v-for="answer in answers" 
       :key="answer" 
       :class="{'correct': selectedAnswer === answer && answer === correctAnswer, 'incorrect': selectedAnswer === answer && answer !== correctAnswer }"
-      @click="selectAnswer(answer)"
+      
     >
-      <button :disabled="!!selectedAnswer" :style="buttonStyle(answer)">{{ answer }}</button>
+      <button @click="selectAnswer(answer)" :disabled="!!selectedAnswer" :style="buttonStyle(answer)">{{ answer }}</button>
     </li>
   </ul>
 </div>
