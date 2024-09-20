@@ -18,7 +18,7 @@
     />
 
     <!-- Feedback and Next Question Button -->
-    <div v-if="state === states.FEEDBACK" class="feedback">
+    <div v-show="state === states.FEEDBACK" class="feedback">
       <p>{{ feedbackText }}</p>
       <button @click="nextQuestion">Next Question</button>
     </div>
@@ -34,6 +34,7 @@
   <FinalRound
     v-if="state === states.WAGER"
     :final-round-category="decodeHTMLEntities(currentQuestion.category)"
+    :user-score="heroScore"
     @submit-wager="wager => onFinalRoundWagerSubmit(wager)"
   />
   <!-- Loading state -->
@@ -49,7 +50,7 @@ import Question from './Question.vue';
 import WelcomeScreen from './WelcomeScreen.vue';
 import ScoreContainer from './ScoreContainer.vue';
 import BetweenRounds from './BetweenRounds.vue';
-import FinalRound from './FinalRound.vue';
+import FinalRound from './FinalRoundWager.vue';
 
 const states = {
   WELCOME: 'welcome',
@@ -141,21 +142,20 @@ function isFinalRound() {
 }
 
 function handleAnswer(answer) {
-  state.value = states.FEEDBACK;
 
   const questionValue = isFinalRound() ? finalRoundWager.value : currentQuestionValue.value;
 
   selectedAnswer.value = answer;
   const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
   if (answer === correctAnswer) {
-    feedbackText.value = 'Correct! 🎉';
+    feedbackText.value = '🎉';
     heroScore.value += questionValue;
   }
   else if (answer === 'pass') {
-    feedbackText.value = 'You passed! 😅';
+    feedbackText.value = '¯\\_(ツ)_/¯';
   }
   else {
-    feedbackText.value = 'Incorrect!';
+    feedbackText.value = '😢';
     heroScore.value -= questionValue;
   }
 
@@ -178,6 +178,12 @@ function handleAnswer(answer) {
   else if (ai2Result === 'incorrect') {
     ai2Score.value -= currentQuestionValue.value;
   }
+
+  state.value = states.FEEDBACK;
+  // setting timeout causes content jumping
+  // setTimeout(() => {
+  //   feedbackText.value = '';
+  // }, 3000);
 }
 
 function simAIResult(probPass, probCorrect) {
@@ -214,7 +220,6 @@ function advanceRound() {
 }
 
 function onFinalRoundWagerSubmit(wager) {
-  console.log('Wager submitted:', wager);
   finalRoundWager.value = Number(wager);
   state.value = states.QUESTION;
 }
@@ -287,7 +292,7 @@ fetchAllProfilePicsAndNames();
 
 
 /* Media query for mobile devices */
-@media (max-width: 600px) {
+/* @media (max-width: 600px) {
     .score-display {
         font-size: 16px;
         padding: 8px;
@@ -299,6 +304,6 @@ fetchAllProfilePicsAndNames();
         width: 100%;
         margin-top: 5px;
     }
-  }
+  } */
   </style>
   

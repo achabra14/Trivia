@@ -29,6 +29,7 @@ header {
 main {
   margin: 0 auto;
   max-width: 600px;
+  min-height: 650px;
 }
 
 button {

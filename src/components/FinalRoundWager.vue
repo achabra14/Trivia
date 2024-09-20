@@ -39,12 +39,14 @@
 import { ref } from 'vue';
 
 const wager = ref(0);             // Model to store user's wager
-const maxWager = ref(1000);       // Maximum allowed wager (can be dynamic)
 const errorMessage = ref('');
 
 const props = defineProps({
-  finalRoundCategory: String
+  finalRoundCategory: String,
+  userScore: Number
 });
+
+const maxWager = Math.max(props.userScore, 1000);
 
 const emit = defineEmits(['submit-wager']);
 
