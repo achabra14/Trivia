@@ -5,24 +5,26 @@
     @start-game="(inputUsername, categories) => startGame(inputUsername, categories)" 
   />
 
-  <div v-if="state === states.QUESTION || state === states.FEEDBACK">
+  <div v-if="state === states.QUESTION || state === states.FEEDBACK || state === states.WAGER">
     <ScoreContainer :players="players" />
     <h3>{{ `${valueMessage} -  ${decodeHTMLEntities(currentQuestion.category)}` }}</h3>
-    
-    <Question 
-      :question="decodeHTMLEntities(currentQuestion.question)" 
-      :answers="shuffledAnswers"
-      :selected-answer="selectedAnswer"
-      :correct-answer="decodeHTMLEntities(currentQuestion.correct_answer)"
-      @answer-selected="handleAnswer"
-    />
-
-    <!-- Feedback and Next Question Button -->
-    <div v-show="state === states.FEEDBACK" class="feedback">
-      <p>{{ feedbackText }}</p>
-      <button @click="nextQuestion">Next Question</button>
-    </div>
   </div>
+
+  <Question 
+    v-if="state === states.QUESTION || state === states.FEEDBACK"
+    :question="decodeHTMLEntities(currentQuestion.question)" 
+    :answers="shuffledAnswers"
+    :selected-answer="selectedAnswer"
+    :correct-answer="decodeHTMLEntities(currentQuestion.correct_answer)"
+    @answer-selected="handleAnswer"
+  />
+
+  <!-- Feedback and Next Question Button -->
+  <div v-show="state === states.FEEDBACK" class="feedback">
+    <p>{{ feedbackText }}</p>
+    <button @click="nextQuestion">Next Question</button>
+  </div>
+  
 
   <BetweenRounds 
     v-if="state === states.BETWEEN_ROUNDS"
