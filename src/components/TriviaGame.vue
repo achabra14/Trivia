@@ -142,8 +142,7 @@ function isFinalRound() {
 }
 
 function handleAnswer(answer) {
-
-  const questionValue = isFinalRound() ? finalRoundWager.value : currentQuestionValue.value;
+  let questionValue = isFinalRound() ? finalRoundWager.value : currentQuestionValue.value;
 
   selectedAnswer.value = answer;
   const correctAnswer = decodeHTMLEntities(currentQuestion.value.correct_answer);
@@ -162,21 +161,25 @@ function handleAnswer(answer) {
   const AIPASS = 0.2;
   const AICORRECT = 0.7;
 
+  questionValue = isFinalRound() ? getAIWagerRandom(ai1Score.value) : currentQuestionValue.value;
+
   // simulate AI players
   let ai1Result = simAIResult(AIPASS, AICORRECT);
   if (ai1Result === 'correct') {
-    ai1Score.value += currentQuestionValue.value;
+    ai1Score.value += questionValue;
   }
   else if (ai1Result === 'incorrect') {
-    ai1Score.value -= currentQuestionValue.value;
-  }
+    ai1Score.value -= questionValue;
+  }  
+
+  questionValue = isFinalRound() ? getAIWagerRandom(ai2Score.value) : currentQuestionValue.value;
 
   let ai2Result = simAIResult(0.2, 0.7);
   if (ai2Result === 'correct') {
-    ai2Score.value += currentQuestionValue.value;
+    ai2Score.value += questionValue;
   }
   else if (ai2Result === 'incorrect') {
-    ai2Score.value -= currentQuestionValue.value;
+    ai2Score.value -= questionValue;
   }
 
   state.value = states.FEEDBACK;
@@ -184,6 +187,12 @@ function handleAnswer(answer) {
   // setTimeout(() => {
   //   feedbackText.value = '';
   // }, 3000);
+}
+
+// Get a random wager for AI players, must be divisible by 100
+function getAIWagerRandom(aiScore) {
+  const maxWager = Math.max(aiScore, 1000);
+  return (Math.round(Math.random() * (maxWager / 100))) * 100;
 }
 
 function simAIResult(probPass, probCorrect) {
